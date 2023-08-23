@@ -32,8 +32,8 @@ def get_args():
 
     return args
 
-CSV_PATH = 'data/custom_dataset/landmarks_fistL.csv'
-GESTURE = 'fistL'
+CSV_PATH = 'build_dataset/data/gesture_testing_data.csv'
+GESTURE = 'pointingR'
 
 def main():
     # Argument parsing #################################################################
