@@ -26,7 +26,6 @@ def train(dataloader, model, loss_fn, optimizer, summarywriter, epoch):
         labels = labels.to(DEVICE)
         landmarks = landmarks.to(DEVICE)
         #--------------------------
-
         # Compute prediction error
         pred = model(landmarks)
         loss = loss_fn(pred, labels)
@@ -37,8 +36,8 @@ def train(dataloader, model, loss_fn, optimizer, summarywriter, epoch):
 
         #--------------------------
         running_loss += loss
-        if batch % 200 == 0:
-            print("Running loss: " + str(running_loss.item()))
+        # if batch % 200 == 0:
+        #     print("Running loss: " + str(running_loss.item()))
 
     print(f"Average Training Loss Epoch {epoch}: {running_loss/size}")
     
@@ -63,49 +62,67 @@ def test(dataloader, model, loss_fn, summarywriter, epoch):
             
             labels = labels.to(DEVICE)
             landmarks = landmarks.to(DEVICE)
-        #--------------------------
+            #--------------------------
+            # Calculating loss
             pred = model(landmarks)
             test_loss += loss_fn(pred, labels).item()
             correct += (pred.argmax(1) == labels).type(torch.float).sum().item()
     
+    #--------------------------
     test_loss /= num_batches
     summarywriter.add_scalars("Loss", {"test": test_loss}, epoch)
-    correct /= size
-    summarywriter.add_scalar("Accuracy/Testing", 100*correct, epoch)
-    print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+    accuracy = (correct / size) * 100
+    summarywriter.add_scalar("Accuracy/Testing", accuracy, epoch)
+    print(f"Test Error: \n Accuracy: {accuracy}%, Avg loss: {test_loss} \n")
 
 
 
-def train_and_test():
-
+def train_and_test(epochs):
+    #--------------------------
     # Setup
     model = GestureNeuralNetwork().to(DEVICE)
     loss_fn = nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.0005)
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.001)
 
-    train_dataset = HandLandmarksDataset('train_model/gesture_training_data.csv')
+    train_dataset = HandLandmarksDataset('train_model/static/gesture_training_data.csv')
     train_dataloader = DataLoader(train_dataset, batch_size=4, shuffle=True)
 
-    test_dataset = HandLandmarksDataset('train_model/gesture_testing_data.csv')
+    test_dataset = HandLandmarksDataset('train_model/static/gesture_testing_data.csv')
     test_dataloader = DataLoader(test_dataset, batch_size=4, shuffle=True)
 
     writer = SummaryWriter()
 
     #--------------------------
     # Training Loop
-    epochs = 12
     for e in range(1, epochs+1):
-        print("Starting...")
         print(f"-------------- BEGIN TRAINING: EPOCH {e} --------------")
         train(train_dataloader, model, loss_fn, optimizer, writer, e)
         print(f"-------------- BEGIN TESTING: EPOCH {e} --------------")
         test(test_dataloader, model, loss_fn, writer, e)
     #--------------------------
     print("Done!")
-    
+    return model
+
+def test_trained_model(path_to_model):
+
+    model = GestureNeuralNetwork()
+    model.load_state_dict(torch.load(path_to_model))
+
+    test_dataset = HandLandmarksDataset('train_model/static/gesture_testing_data.csv')
+    test_dataloader = DataLoader(test_dataset, batch_size=4, shuffle=True)
+
+    writer = SummaryWriter()
+
+    loss_fn = nn.CrossEntropyLoss()
+
+    test(test_dataloader, model, loss_fn, writer, 0)
 
 
 if __name__ == '__main__':
-    train_and_test()
+    # model = train_and_test(30)
+    # torch.save(model.state_dict(), "train_model/static/trained_model.pt")
+    # print("Saved model!")
+
+    test_trained_model("train_model/static/trained_model.pt")
 
 
