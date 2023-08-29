@@ -13,10 +13,18 @@ class GestureNeuralNetwork(nn.Module):
 )
     
     def forward(self, x):
-        x = torch.flatten(x, 1)
+        if not (len(x.shape) == 1):
+            x = torch.flatten(x, 1)
         x = x.to(self.linear_relu_stack[0].weight.dtype) 
         logits = self.linear_relu_stack(x)
         return logits
+
+
+
+
+
+
+
 
 
 """

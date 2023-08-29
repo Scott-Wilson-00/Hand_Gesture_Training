@@ -119,10 +119,10 @@ def test_trained_model(path_to_model):
 
 
 if __name__ == '__main__':
-    # model = train_and_test(30)
+    model = train_and_test(15)
     # torch.save(model.state_dict(), "train_model/static/trained_model.pt")
     # print("Saved model!")
 
-    test_trained_model("train_model/static/trained_model.pt")
+    # test_trained_model("train_model/static/trained_model.pt")
 
 
